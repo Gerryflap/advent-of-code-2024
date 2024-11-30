@@ -16,7 +16,6 @@ function part_1(input::String) :: Int
         fst = numbers[1]
         lst = numbers[end]
         n = string(fst, lst)
-        println(parse(Int, n))
         total += parse(Int, n)
     end
     return total
