@@ -1,0 +1,4 @@
+name = "aoc_2024"
+uuid = "20b7251c-fd95-440e-be11-95180ceb5ab9"
+authors = ["gerben <gerry2211@gmail.com>"]
+version = "0.1.0"
