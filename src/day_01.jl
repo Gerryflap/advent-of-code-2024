@@ -1,10 +1,11 @@
 module day_01
 
-real_input = read("inputs/real_01.txt", String)
-test_input_1 = read("inputs/test_01_p1.txt", String)
-test_input_2 = read("inputs/test_01_p2.txt", String)
+real_input = read("inputs/01_real.txt", String)
+test_input_1 = read("inputs/01_test_p1.txt", String)
+test_input_2 = read("inputs/01_test_p2.txt", String)
 
 function run()
+    println("Day 1:")
     println("Part 1 - Test:")
     println(part_1(test_input_1))
     println("Part 1 - Real:")
@@ -50,4 +51,4 @@ function parse_input(input::String) :: Array{Int64, 2}
     end
     return numbers
 end
-end
+end #module day_0

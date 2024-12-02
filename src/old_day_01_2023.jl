@@ -44,6 +44,7 @@ function part_2(input::String) :: Int
 end
 
 function run()
+    println("Day 1 (OLD, 2023):")
     println("Part 1 - Test:")
     println(part_1(test_input_1))
     println("Part 1 - Real:")
@@ -55,4 +56,4 @@ function run()
     println(part_2(real_input))
 end
 
-end
+end #module old_day_01_2023
