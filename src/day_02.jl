@@ -86,5 +86,3 @@ function is_safe_2(report::Report, acceptable_range::UnitRange{Int64}) :: Bool
     return true
 end
 end #module day_02
-
-day_02.run()
