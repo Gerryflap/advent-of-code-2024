@@ -14,7 +14,7 @@ function run()
     println("Part 2 - Test:")
     println(part_2(test_input_2))
     println("Part 2 - Real:")
-    println(part_2(real_input))
+    println(part_2(real_input)) 
 end
 
 Report = Array{Int64, 1}
