@@ -95,5 +95,3 @@ function part_2(input::String) :: Int64
 end
 
 end #module
-
-day_04.run()
