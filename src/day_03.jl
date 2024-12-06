@@ -56,5 +56,3 @@ end
 
 
 end #module day_03
-
-day_03.run()

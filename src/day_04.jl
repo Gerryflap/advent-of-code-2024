@@ -6,7 +6,7 @@ test_input_1 = read("inputs/04_test_p1.txt", String)
 test_input_2 = read("inputs/04_test_p1.txt", String)
 
 function run()
-    println("Day 3:")
+    println("Day 4:")
     println("Part 1 - Test:")
     println(part_1(test_input_1))
     println("Part 1 - Real:")
