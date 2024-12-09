@@ -202,5 +202,3 @@ end
 
 
 end #module
-
-day_05.run()

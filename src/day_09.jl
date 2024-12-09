@@ -1,6 +1,5 @@
 module day_09
 using Match
-using Accessors
 using Printf
 
 real_input = read("inputs/09_real.txt", String)
@@ -14,10 +13,10 @@ function run()
     println("Part 1 - Real:")
     println(part_1(real_input))
     
-    # println("Part 2 - Test:")
-    # println(part_2(test_input_2))
-    # println("Part 2 - Real:")
-    # println(part_2(real_input))
+    println("Part 2 - Test:")
+    println(part_2(test_input_2))
+    println("Part 2 - Real:")
+    println(part_2(real_input))
 end
 
 struct EmptyBlock end
@@ -50,6 +49,11 @@ function part_1(input::String) :: Int64
     return checksum
 end
 
+"""
+    Parses the line into a vector of blocks following the parse rules.
+    The parse rules of AoC alternate between file and empty blocks.
+    File blocks will get incrementing unique ids (starting at 0).
+"""
 function parse_line(line::String) :: Vector{Blocks}
     fs::Vector{Blocks} = fill(Blocks(empty_block, 0), length(line))
     empty = false
@@ -68,13 +72,10 @@ function parse_line(line::String) :: Vector{Blocks}
     return fs
 end
 
-function next_empty_index_from_left(fs::Vector{Blocks}, current_index::Int64, max_index::Int64)
-    while current_index < max_index && fs[current_index] != empty_block
-        current_index += 1
-    end
-    return current_index
-end
-
+"""
+    Find the next non-empty blocks from the right, starting at current_index.
+    Will return min_index if if cannot find any non-empty blocks before that.
+"""
 function next_file_index_from_right(fs::Vector{Blocks}, current_index::Int64, min_index::Int64)
     while current_index > min_index && fs[current_index].block_type == empty_block
         current_index -= 1
@@ -83,7 +84,10 @@ function next_file_index_from_right(fs::Vector{Blocks}, current_index::Int64, mi
 end
 
 """
-    Swaps all empty blocks on the left hand side with filled blocks until the filled and empty blocks are completely separated
+    Swaps all empty blocks on the left hand side with filled blocks until the filled and empty blocks are completely separated.
+
+    When I wrote this, God and I knew what happened here.
+    Now only God knows.
 """
 function compact(fs::Vector{Blocks}) :: Vector{Blocks}
     fs = copy(fs)
@@ -99,7 +103,6 @@ function compact(fs::Vector{Blocks}) :: Vector{Blocks}
 
             if fs[i].amount >= fs[j].amount
                 push!(fs_new, fs[j])
-                # @printf(">= : i=%d, j=%d, %s\n", i, j, fs_new)
                 fs[i] = Blocks(fs[i].block_type, fs[i].amount - fs[j].amount)
                 # fs[j] is now invalid, move left
                 j -= 1
@@ -109,20 +112,16 @@ function compact(fs::Vector{Blocks}) :: Vector{Blocks}
                 end
             else
                 push!(fs_new, Blocks(fs[j].block_type, fs[i].amount))
-                # @printf("< : i=%d, j=%d, %s\n", i, j, fs_new)
                 fs[j] = Blocks(fs[j].block_type, fs[j].amount - fs[i].amount)
                 i += 1
             end
         else
             # Simply append
             push!(fs_new, fs[i])
-            # @printf("file : i=%d, j=%d, %s\n", i, j, fs_new)
             i +=1
         end          
     end
-    # @printf("Stopped at i=%d, j=%d\n", i, j)
     if is_file(fs[i])
-        # @printf("Is File at i=%d, j=%d\n", i, j)
         if fs[i].block_type == fs_new[end].block_type
             fs_new[end] = Blocks(fs[i].block_type, fs[i].amount + fs_new[end].amount)
         else
@@ -134,6 +133,9 @@ function compact(fs::Vector{Blocks}) :: Vector{Blocks}
     return fs_new
 end
 
+""" 
+    Computes the new score and new index for a single block
+"""
 function compute_score(index::Int64, score::Int64, blocks::Blocks) :: Tuple{Int64, Int64}
     if is_empty(blocks)
         return index + blocks.amount, score
@@ -145,6 +147,9 @@ function compute_score(index::Int64, score::Int64, blocks::Blocks) :: Tuple{Int6
     return index + blocks.amount, score
 end
 
+""" 
+    Computes the score for the whole array of blocks
+"""
 function compute_score(blocks_vec::Vector{Blocks}) :: Int64
     index = 0
     total = 0
@@ -153,8 +158,67 @@ function compute_score(blocks_vec::Vector{Blocks}) :: Int64
     end
     return total
 end
+
+# ====================================== Part 2 ======================================
+function part_2(input::String)
+    fs = parse_line(input)
+    compact_defrag!(fs)
+    checksum = compute_score(fs)
+    return checksum
 end
 
+"""
+    Compacts the blocks without fragmenting them.
+    This function operates in-place, and may extend the array.
+"""
+function compact_defrag!(fs::Vector{Blocks})
+    # Take the highest id as the start
+    max_file_id = maximum(map(f -> f.block_type.id, filter(is_file, fs)))
+    for file_id in max_file_id:-1:0
+        file_pos = find_file_id(fs, file_id)
+        to_pos = find_fitting_space(fs, file_pos)
+        if !isnothing(to_pos)
+            if fs[to_pos].amount == fs[file_pos].amount
+                fs[file_pos],fs[to_pos] = fs[to_pos], fs[file_pos]
+            else
+                # empty space bigger than our file, we need to keep some empty space there
+                file = fs[file_pos]
+                empty_space = fs[to_pos]
+                fs[file_pos] = Blocks(empty_block, file.amount)
+                fs[to_pos] = Blocks(empty_block, empty_space.amount - file.amount)
+                insert!(fs, to_pos, file)
+            end
+        end           
+    end
+end
 
+"""
+    Finds the index of the given file id.
 
-day_09.run()
+    If multiple exist then you're messing around with my code, because that should never happen, but it'll pick the rightmost index.
+    If no index exists then you're also messing with my code, and you'll get what you deserve >:3 
+"""
+function find_file_id(fs::Vector{Blocks}, file_id::Int64)
+    for i in length(fs):-1:1
+        if is_file(fs[i]) && fs[i].block_type.id == file_id
+            return i
+        end
+    end
+    error(@sprintf("Could not find file id %d", file_id))
+end
+
+"""
+    Finds a place earlier in the blocks array for the object in fs at object_index.
+    Will return nothing if this index cannot be found.
+"""
+function find_fitting_space(fs::Vector{Blocks}, object_index::Int64) :: Union{Int64, Nothing}
+    size = fs[object_index].amount
+    for i in 1:object_index
+        if is_empty(fs[i]) && fs[i].amount >= size
+            return i
+        end
+    end
+    return nothing
+end
+
+end
